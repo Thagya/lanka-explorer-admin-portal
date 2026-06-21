@@ -13,10 +13,12 @@ export default function DashboardPage() {
   const [listings, setListings] = useState([])
   const [users, setUsers]       = useState([])
   const [loading, setLoading]   = useState(true)
+  const [error, setError]       = useState('')
 
   useEffect(() => {
     Promise.all([getAllBookings(), getAllListings(), getUsers()])
       .then(([b, l, u]) => { setBookings(b.data); setListings(l.data); setUsers(u.data) })
+      .catch(err => setError(err.response?.data?.message || 'Failed to load dashboard data'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -30,6 +32,12 @@ export default function DashboardPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-3 text-sm mb-6">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard label="Total Bookings"   value={bookings.length} sub={`${pending} under review`} icon={ClipboardList} color="teal" />
@@ -64,7 +72,7 @@ export default function DashboardPage() {
             ))}
           </tbody>
         </Table>
-        {bookings.length === 0 && <p className="text-center text-gray-400 py-8 text-sm">No bookings yet.</p>}
+        {bookings.length === 0 && !error && <p className="text-center text-gray-400 py-8 text-sm">No bookings yet.</p>}
       </div>
     </div>
   )

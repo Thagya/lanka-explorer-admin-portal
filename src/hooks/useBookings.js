@@ -2,32 +2,34 @@ import { useState, useEffect, useCallback } from 'react'
 import { getAllBookings, getBooking, transitionBooking } from '../api/index.js'
 
 export function useAllBookings(filter = 'all') {
-  const [bookings, setBookings]   = useState([])
-  const [loading, setLoading]     = useState(true)
+  const [bookings, setBookings] = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [error, setError]       = useState('')
 
   useEffect(() => {
     setLoading(true)
+    setError('')
     const params = filter !== 'all' ? { status: filter } : {}
     getAllBookings(params)
       .then(({ data }) => setBookings(data))
-      .catch(console.error)
+      .catch(err => setError(err.response?.data?.message || 'Failed to load bookings'))
       .finally(() => setLoading(false))
   }, [filter])
 
-  return { bookings, loading }
+  return { bookings, loading, error }
 }
 
 export function useBooking(id) {
-  const [booking, setBooking]         = useState(null)
-  const [loading, setLoading]         = useState(true)
+  const [booking, setBooking]             = useState(null)
+  const [loading, setLoading]             = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
-  const [error, setError]             = useState('')
+  const [error, setError]                 = useState('')
 
   const load = useCallback(() => {
     if (!id) return
     getBooking(id)
       .then(({ data }) => setBooking(data))
-      .catch(() => setError('Booking not found'))
+      .catch(err => setError(err.response?.data?.message || 'Failed to load booking'))
       .finally(() => setLoading(false))
   }, [id])
 

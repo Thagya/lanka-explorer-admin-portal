@@ -8,13 +8,20 @@ import { formatCurrency, formatDate } from '../utils/formatters.js'
 
 export default function BookingsPage() {
   const [filter, setFilter] = useState('all')
-  const { bookings, loading } = useAllBookings(filter)
+  const { bookings, loading, error } = useAllBookings(filter)
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Bookings</h1>
       <BookingStatusFilter value={filter} onChange={setFilter} />
-      <Table loading={loading} empty={bookings.length === 0 ? 'No bookings found.' : null}>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-3 text-sm mb-4">
+          {error}
+        </div>
+      )}
+
+      <Table loading={loading} empty={!error && bookings.length === 0 ? 'No bookings found.' : null}>
         <thead><tr>
           <Th>Listing</Th><Th>Customer</Th><Th>Type</Th>
           <Th>Amount</Th><Th>Date</Th><Th>Status</Th>

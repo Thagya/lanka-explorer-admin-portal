@@ -4,12 +4,14 @@ import { getAttractions, createAttraction, updateAttraction, deleteAttraction } 
 export function useAttractions() {
   const [attractions, setAttractions] = useState([])
   const [loading, setLoading]         = useState(true)
+  const [error, setError]             = useState('')
 
   const load = useCallback(() => {
     setLoading(true)
+    setError('')
     getAttractions()
       .then(({ data }) => setAttractions(data))
-      .catch(console.error)
+      .catch(err => setError(err.response?.data?.message || 'Failed to load attractions'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -19,5 +21,5 @@ export function useAttractions() {
   const update = async (id, data) => { await updateAttraction(id, data); load() }
   const remove = async (id) => { await deleteAttraction(id); load() }
 
-  return { attractions, loading, create, update, remove }
+  return { attractions, loading, error, create, update, remove }
 }

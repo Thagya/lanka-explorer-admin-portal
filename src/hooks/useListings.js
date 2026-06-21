@@ -4,12 +4,14 @@ import { getAllListings, createListing, updateListing, deleteListing } from '../
 export function useListings() {
   const [listings, setListings] = useState([])
   const [loading, setLoading]   = useState(true)
+  const [error, setError]       = useState('')
 
   const load = useCallback(() => {
     setLoading(true)
+    setError('')
     getAllListings()
       .then(({ data }) => setListings(data))
-      .catch(console.error)
+      .catch(err => setError(err.response?.data?.message || 'Failed to load listings'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -19,5 +21,5 @@ export function useListings() {
   const update = async (id, data) => { await updateListing(id, data); load() }
   const remove = async (id) => { await deleteListing(id); load() }
 
-  return { listings, loading, create, update, remove, reload: load }
+  return { listings, loading, error, create, update, remove, reload: load }
 }

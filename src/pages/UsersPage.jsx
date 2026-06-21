@@ -7,9 +7,10 @@ import { formatDate } from '../utils/formatters.js'
 import { ShieldCheck, UserX } from 'lucide-react'
 
 export default function UsersPage() {
-  const { users, loading, toggle, remove } = useUsers()
-  const [search, setSearch]     = useState('')
+  const { users, loading, error: loadError, toggle, remove } = useUsers()
+  const [search, setSearch]         = useState('')
   const [selectedId, setSelectedId] = useState(null)
+  const [actionError, setActionError] = useState('')
   const { detail, loading: detailLoading } = useUserDetail(selectedId)
 
   const filtered = users.filter(u =>
@@ -18,14 +19,24 @@ export default function UsersPage() {
   )
 
   const handleToggle = async (id) => {
-    await toggle(id)
-    setSelectedId(null)
+    setActionError('')
+    try {
+      await toggle(id)
+      setSelectedId(null)
+    } catch (err) {
+      setActionError(err.response?.data?.message || 'Failed to update user status')
+    }
   }
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this user and all their bookings?')) return
-    await remove(id)
-    setSelectedId(null)
+    setActionError('')
+    try {
+      await remove(id)
+      setSelectedId(null)
+    } catch (err) {
+      setActionError(err.response?.data?.message || 'Failed to delete user')
+    }
   }
 
   return (
@@ -33,7 +44,19 @@ export default function UsersPage() {
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Users</h1>
       <UserSearch value={search} onChange={setSearch} />
 
-      <Table loading={loading} empty={filtered.length === 0 ? 'No users found.' : null}>
+      {loadError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-3 text-sm mb-4">
+          {loadError}
+        </div>
+      )}
+
+      {actionError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-3 text-sm mb-4">
+          {actionError}
+        </div>
+      )}
+
+      <Table loading={loading} empty={!loadError && filtered.length === 0 ? 'No users found.' : null}>
         <thead><tr>
           <Th>Name</Th><Th>Email</Th><Th>Role</Th>
           <Th>Status</Th><Th>Joined</Th><Th>Actions</Th>

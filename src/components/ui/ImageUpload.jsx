@@ -24,7 +24,7 @@ export default function ImageUpload({ value = [], onChange, max = 6 }) {
 
     setUploading(true)
     try {
-      const results = await Promise.all(
+      const results = await Promise.allSettled(
         toUpload.map(async (file) => {
           const fd = new FormData()
           fd.append('image', file)
@@ -34,7 +34,10 @@ export default function ImageUpload({ value = [], onChange, max = 6 }) {
           return data.url
         })
       )
-      onChange([...value, ...results])
+      const succeeded = results.filter(r => r.status === 'fulfilled').map(r => r.value)
+      const failed    = results.filter(r => r.status === 'rejected').length
+      if (succeeded.length > 0) onChange([...value, ...succeeded])
+      if (failed > 0) setError(`${failed} file${failed > 1 ? 's' : ''} failed to upload. Please try again.`)
     } catch (err) {
       setError(err.response?.data?.message || 'Upload failed. Try again.')
     } finally {

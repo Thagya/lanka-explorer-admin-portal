@@ -8,22 +8,25 @@ import { Table, Th, Td, Tr } from '../components/ui/Table.jsx'
 import { formatCurrency, PRICE_UNIT_LABELS } from '../utils/formatters.js'
 
 export default function ListingsPage() {
-  const { listings, loading, create, update, remove } = useListings()
-  const [modal, setModal]   = useState(null) // null | 'create' | listing object
-  const [saving, setSaving] = useState(false)
+  const { listings, loading, error: loadError, create, update, remove } = useListings()
+  const [modal, setModal]         = useState(null)
+  const [saving, setSaving]       = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [actionError, setActionError] = useState('')
 
-  const openCreate = () => setModal('create')
-  const openEdit   = (l) => setModal(l)
-  const closeModal = () => setModal(null)
+  const openCreate = () => { setModal('create'); setSaveError('') }
+  const openEdit   = (l) => { setModal(l); setSaveError('') }
+  const closeModal = () => { setModal(null); setSaveError('') }
 
   const handleSave = async (data) => {
     setSaving(true)
+    setSaveError('')
     try {
       if (modal === 'create') await create(data)
       else await update(modal._id, data)
       closeModal()
     } catch (err) {
-      alert(err.response?.data?.message || 'Save failed')
+      setSaveError(err.response?.data?.message || 'Failed to save listing')
     } finally {
       setSaving(false)
     }
@@ -31,7 +34,12 @@ export default function ListingsPage() {
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this listing?')) return
-    try { await remove(id) } catch { alert('Delete failed') }
+    setActionError('')
+    try {
+      await remove(id)
+    } catch (err) {
+      setActionError(err.response?.data?.message || 'Failed to delete listing')
+    }
   }
 
   return (
@@ -41,7 +49,19 @@ export default function ListingsPage() {
         <Button size="sm" onClick={openCreate}><Plus size={16} /> Add Listing</Button>
       </div>
 
-      <Table loading={loading} empty={listings.length === 0 ? 'No listings yet.' : null}>
+      {loadError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-3 text-sm mb-4">
+          {loadError}
+        </div>
+      )}
+
+      {actionError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-3 text-sm mb-4">
+          {actionError}
+        </div>
+      )}
+
+      <Table loading={loading} empty={!loadError && listings.length === 0 ? 'No listings yet.' : null}>
         <thead><tr>
           <Th>Name</Th><Th>Type</Th><Th>Region</Th>
           <Th>Price</Th><Th>Active</Th><Th>Actions</Th>
@@ -70,6 +90,11 @@ export default function ListingsPage() {
           title={modal === 'create' ? 'Add Listing' : 'Edit Listing'}
           onClose={closeModal}
         >
+          {saveError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-3 py-2 text-sm mb-4">
+              {saveError}
+            </div>
+          )}
           <ListingForm
             initial={modal === 'create' ? null : modal}
             onSave={handleSave}

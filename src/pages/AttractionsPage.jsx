@@ -7,22 +7,25 @@ import Button from '../components/ui/Button.jsx'
 import { Table, Th, Td, Tr } from '../components/ui/Table.jsx'
 
 export default function AttractionsPage() {
-  const { attractions, loading, create, update, remove } = useAttractions()
-  const [modal, setModal]   = useState(null)
-  const [saving, setSaving] = useState(false)
+  const { attractions, loading, error: loadError, create, update, remove } = useAttractions()
+  const [modal, setModal]     = useState(null)
+  const [saving, setSaving]   = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [actionError, setActionError] = useState('')
 
-  const openCreate = () => setModal('create')
-  const openEdit   = (a) => setModal(a)
-  const closeModal = () => setModal(null)
+  const openCreate = () => { setModal('create'); setSaveError('') }
+  const openEdit   = (a) => { setModal(a); setSaveError('') }
+  const closeModal = () => { setModal(null); setSaveError('') }
 
   const handleSave = async (data) => {
     setSaving(true)
+    setSaveError('')
     try {
       if (modal === 'create') await create(data)
       else await update(modal._id, data)
       closeModal()
     } catch (err) {
-      alert(err.response?.data?.message || 'Save failed')
+      setSaveError(err.response?.data?.message || 'Failed to save attraction')
     } finally {
       setSaving(false)
     }
@@ -30,7 +33,12 @@ export default function AttractionsPage() {
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this attraction?')) return
-    try { await remove(id) } catch { alert('Delete failed') }
+    setActionError('')
+    try {
+      await remove(id)
+    } catch (err) {
+      setActionError(err.response?.data?.message || 'Failed to delete attraction')
+    }
   }
 
   return (
@@ -40,7 +48,19 @@ export default function AttractionsPage() {
         <Button size="sm" onClick={openCreate}><Plus size={16} /> Add Attraction</Button>
       </div>
 
-      <Table loading={loading} empty={attractions.length === 0 ? 'No attractions yet.' : null}>
+      {loadError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-3 text-sm mb-4">
+          {loadError}
+        </div>
+      )}
+
+      {actionError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-3 text-sm mb-4">
+          {actionError}
+        </div>
+      )}
+
+      <Table loading={loading} empty={!loadError && attractions.length === 0 ? 'No attractions yet.' : null}>
         <thead><tr>
           <Th>Name</Th><Th>Category</Th><Th>Region</Th><Th>Rating</Th><Th>Actions</Th>
         </tr></thead>
@@ -67,6 +87,11 @@ export default function AttractionsPage() {
           title={modal === 'create' ? 'Add Attraction' : 'Edit Attraction'}
           onClose={closeModal}
         >
+          {saveError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-3 py-2 text-sm mb-4">
+              {saveError}
+            </div>
+          )}
           <AttractionForm
             initial={modal === 'create' ? null : modal}
             onSave={handleSave}
