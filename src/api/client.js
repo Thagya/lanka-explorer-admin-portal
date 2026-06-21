@@ -1,8 +1,9 @@
 import axios from 'axios'
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
-})
+const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const baseURL = rawUrl.replace(/^﻿/, '').trim()
+
+const api = axios.create({ baseURL })
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('le_admin_token')
@@ -16,7 +17,10 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       localStorage.removeItem('le_admin_token')
       localStorage.removeItem('le_admin')
-      window.location.href = '/login'
+      // avoid redirect loop if already on /login
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(err)
   }
