@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, Check, X } from 'lucide-react'
-import { useListings } from '../hooks/useListings.js'
+import { Plus, Pencil, Trash2, Check, X, Eye } from 'lucide-react'
+import { useListings, useListingDetail } from '../hooks/useListings.js'
 import ListingForm from '../components/listings/ListingForm.jsx'
+import ListingDetailDrawer from '../components/listings/ListingDetailDrawer.jsx'
 import Modal from '../components/ui/Modal.jsx'
 import Button from '../components/ui/Button.jsx'
 import { Table, Th, Td, Tr } from '../components/ui/Table.jsx'
@@ -9,14 +10,19 @@ import { formatCurrency, PRICE_UNIT_LABELS } from '../utils/formatters.js'
 
 export default function ListingsPage() {
   const { listings, loading, error: loadError, create, update, remove } = useListings()
-  const [modal, setModal]         = useState(null)
+  const [modal, setModal]         = useState(null)   // null | 'create' | listing object
+  const [viewId, setViewId]       = useState(null)
   const [saving, setSaving]       = useState(false)
   const [saveError, setSaveError] = useState('')
   const [actionError, setActionError] = useState('')
 
+  const { detail, loading: detailLoading, error: detailError } = useListingDetail(viewId)
+
   const openCreate = () => { setModal('create'); setSaveError('') }
-  const openEdit   = (l) => { setModal(l); setSaveError('') }
+  const openEdit   = (l) => { setModal(l); setSaveError(''); setViewId(null) }
   const closeModal = () => { setModal(null); setSaveError('') }
+  const openView   = (id) => setViewId(id)
+  const closeView  = () => setViewId(null)
 
   const handleSave = async (data) => {
     setSaving(true)
@@ -35,6 +41,7 @@ export default function ListingsPage() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this listing?')) return
     setActionError('')
+    closeView()
     try {
       await remove(id)
     } catch (err) {
@@ -67,6 +74,7 @@ export default function ListingsPage() {
           <Th className="hidden sm:table-cell">Type</Th>
           <Th className="hidden md:table-cell">Region</Th>
           <Th>Price</Th>
+          <Th className="hidden sm:table-cell">Rating</Th>
           <Th className="hidden sm:table-cell">Active</Th>
           <Th>Actions</Th>
         </tr></thead>
@@ -79,12 +87,30 @@ export default function ListingsPage() {
               </Td>
               <Td className="hidden sm:table-cell text-gray-500 capitalize">{l.listingType}</Td>
               <Td className="hidden md:table-cell text-gray-500">{l.region}</Td>
-              <Td>{formatCurrency(l.price?.amount)}<span className="text-gray-400 text-xs ml-1">{PRICE_UNIT_LABELS[l.price?.unit]}</span></Td>
-              <Td className="hidden sm:table-cell">{l.active ? <Check size={16} className="text-green-500" /> : <X size={16} className="text-red-400" />}</Td>
+              <Td>
+                {formatCurrency(l.price?.amount)}
+                <span className="text-gray-400 text-xs ml-1">{PRICE_UNIT_LABELS[l.price?.unit]}</span>
+              </Td>
+              <Td className="hidden sm:table-cell">
+                {l.rating > 0
+                  ? <span className="text-sm">⭐ {l.rating} <span className="text-gray-400 text-xs">({l.reviewCount})</span></span>
+                  : <span className="text-gray-400 text-xs">—</span>
+                }
+              </Td>
+              <Td className="hidden sm:table-cell">
+                {l.active ? <Check size={16} className="text-green-500" /> : <X size={16} className="text-red-400" />}
+              </Td>
               <Td>
                 <div className="flex gap-1">
-                  <button onClick={() => openEdit(l)} className="p-1.5 text-teal-500 hover:bg-teal-50 rounded-lg"><Pencil size={15} /></button>
-                  <button onClick={() => handleDelete(l._id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg"><Trash2 size={15} /></button>
+                  <button onClick={() => openView(l._id)} className="p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg" title="View">
+                    <Eye size={15} />
+                  </button>
+                  <button onClick={() => openEdit(l)} className="p-1.5 text-teal-500 hover:bg-teal-50 rounded-lg" title="Edit">
+                    <Pencil size={15} />
+                  </button>
+                  <button onClick={() => handleDelete(l._id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg" title="Delete">
+                    <Trash2 size={15} />
+                  </button>
                 </div>
               </Td>
             </Tr>
@@ -92,6 +118,19 @@ export default function ListingsPage() {
         </tbody>
       </Table>
 
+      {/* Detail drawer */}
+      {viewId && (
+        <ListingDetailDrawer
+          listing={detail}
+          loading={detailLoading}
+          error={detailError}
+          onClose={closeView}
+          onEdit={() => { const l = listings.find(x => x._id === viewId); if (l) openEdit(l) }}
+          onDelete={() => handleDelete(viewId)}
+        />
+      )}
+
+      {/* Create / Edit modal */}
       {modal && (
         <Modal
           title={modal === 'create' ? 'Add Listing' : 'Edit Listing'}
