@@ -63,17 +63,24 @@ export default function ListingsPage() {
 
       <Table loading={loading} empty={!loadError && listings.length === 0 ? 'No listings yet.' : null}>
         <thead><tr>
-          <Th>Name</Th><Th>Type</Th><Th>Region</Th>
-          <Th>Price</Th><Th>Active</Th><Th>Actions</Th>
+          <Th>Name</Th>
+          <Th className="hidden sm:table-cell">Type</Th>
+          <Th className="hidden md:table-cell">Region</Th>
+          <Th>Price</Th>
+          <Th className="hidden sm:table-cell">Active</Th>
+          <Th>Actions</Th>
         </tr></thead>
         <tbody>
           {listings.map(l => (
             <Tr key={l._id}>
-              <Td className="font-medium text-gray-900">{l.name}</Td>
-              <Td className="text-gray-500 capitalize">{l.listingType}</Td>
-              <Td className="text-gray-500">{l.region}</Td>
+              <Td>
+                <p className="font-medium text-gray-900">{l.name}</p>
+                <p className="text-xs text-gray-400 sm:hidden capitalize mt-0.5">{l.listingType}</p>
+              </Td>
+              <Td className="hidden sm:table-cell text-gray-500 capitalize">{l.listingType}</Td>
+              <Td className="hidden md:table-cell text-gray-500">{l.region}</Td>
               <Td>{formatCurrency(l.price?.amount)}<span className="text-gray-400 text-xs ml-1">{PRICE_UNIT_LABELS[l.price?.unit]}</span></Td>
-              <Td>{l.active ? <Check size={16} className="text-green-500" /> : <X size={16} className="text-red-400" />}</Td>
+              <Td className="hidden sm:table-cell">{l.active ? <Check size={16} className="text-green-500" /> : <X size={16} className="text-red-400" />}</Td>
               <Td>
                 <div className="flex gap-1">
                   <button onClick={() => openEdit(l)} className="p-1.5 text-teal-500 hover:bg-teal-50 rounded-lg"><Pencil size={15} /></button>

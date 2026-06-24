@@ -19,7 +19,7 @@ export default function BookingDetailPage() {
   const { status, listingName, type, customer, details, pricing, payment, history } = booking
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-3xl w-full">
       <button onClick={() => navigate('/bookings')} className="flex items-center gap-2 text-teal-500 text-sm mb-5 hover:underline">
         <ArrowLeft size={16} /> All Bookings
       </button>

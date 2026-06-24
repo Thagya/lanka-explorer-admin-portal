@@ -62,14 +62,21 @@ export default function AttractionsPage() {
 
       <Table loading={loading} empty={!loadError && attractions.length === 0 ? 'No attractions yet.' : null}>
         <thead><tr>
-          <Th>Name</Th><Th>Category</Th><Th>Region</Th><Th>Rating</Th><Th>Actions</Th>
+          <Th>Name</Th>
+          <Th className="hidden sm:table-cell">Category</Th>
+          <Th className="hidden md:table-cell">Region</Th>
+          <Th>Rating</Th>
+          <Th>Actions</Th>
         </tr></thead>
         <tbody>
           {attractions.map(a => (
             <Tr key={a._id}>
-              <Td className="font-medium text-gray-900">{a.name}</Td>
-              <Td className="text-gray-500">{a.category}</Td>
-              <Td className="text-gray-500">{a.region}</Td>
+              <Td>
+                <p className="font-medium text-gray-900">{a.name}</p>
+                <p className="text-xs text-gray-400 sm:hidden mt-0.5">{a.category}</p>
+              </Td>
+              <Td className="hidden sm:table-cell text-gray-500">{a.category}</Td>
+              <Td className="hidden md:table-cell text-gray-500">{a.region}</Td>
               <Td>⭐ {a.rating}</Td>
               <Td>
                 <div className="flex gap-1">

@@ -23,8 +23,12 @@ export default function BookingsPage() {
 
       <Table loading={loading} empty={!error && bookings.length === 0 ? 'No bookings found.' : null}>
         <thead><tr>
-          <Th>Listing</Th><Th>Customer</Th><Th>Type</Th>
-          <Th>Amount</Th><Th>Date</Th><Th>Status</Th>
+          <Th>Listing</Th>
+          <Th className="hidden sm:table-cell">Customer</Th>
+          <Th className="hidden md:table-cell">Type</Th>
+          <Th>Amount</Th>
+          <Th className="hidden md:table-cell">Date</Th>
+          <Th>Status</Th>
         </tr></thead>
         <tbody>
           {bookings.map(b => (
@@ -33,11 +37,12 @@ export default function BookingsPage() {
                 <Link to={`/bookings/${b._id}`} className="text-teal-500 hover:underline font-medium">
                   {b.listingName}
                 </Link>
+                <p className="text-xs text-gray-400 sm:hidden mt-0.5">{b.customer?.name}</p>
               </Td>
-              <Td>{b.customer?.name}</Td>
-              <Td className="capitalize text-gray-500">{b.type}</Td>
+              <Td className="hidden sm:table-cell">{b.customer?.name}</Td>
+              <Td className="hidden md:table-cell capitalize text-gray-500">{b.type}</Td>
               <Td>{formatCurrency(b.pricing?.total)}</Td>
-              <Td className="text-gray-500">{formatDate(b.createdAt)}</Td>
+              <Td className="hidden md:table-cell text-gray-500">{formatDate(b.createdAt)}</Td>
               <Td><Badge status={b.status} /></Td>
             </Tr>
           ))}

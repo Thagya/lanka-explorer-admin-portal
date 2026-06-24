@@ -58,15 +58,22 @@ export default function UsersPage() {
 
       <Table loading={loading} empty={!loadError && filtered.length === 0 ? 'No users found.' : null}>
         <thead><tr>
-          <Th>Name</Th><Th>Email</Th><Th>Role</Th>
-          <Th>Status</Th><Th>Joined</Th><Th>Actions</Th>
+          <Th>Name</Th>
+          <Th className="hidden sm:table-cell">Email</Th>
+          <Th className="hidden md:table-cell">Role</Th>
+          <Th>Status</Th>
+          <Th className="hidden md:table-cell">Joined</Th>
+          <Th>Actions</Th>
         </tr></thead>
         <tbody>
           {filtered.map(u => (
             <Tr key={u._id} onClick={() => setSelectedId(u._id)}>
-              <Td className="font-medium text-gray-900">{u.name}</Td>
-              <Td className="text-gray-500">{u.email}</Td>
               <Td>
+                <p className="font-medium text-gray-900">{u.name}</p>
+                <p className="text-xs text-gray-400 sm:hidden mt-0.5 truncate">{u.email}</p>
+              </Td>
+              <Td className="hidden sm:table-cell text-gray-500">{u.email}</Td>
+              <Td className="hidden md:table-cell">
                 <span className={`text-xs font-semibold px-2 py-1 rounded-full ${u.role === 'admin' ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-600'}`}>
                   {u.role}
                 </span>
@@ -76,7 +83,7 @@ export default function UsersPage() {
                   {u.active ? 'Active' : 'Disabled'}
                 </span>
               </Td>
-              <Td className="text-gray-500">{formatDate(u.createdAt)}</Td>
+              <Td className="hidden md:table-cell text-gray-500">{formatDate(u.createdAt)}</Td>
               <Td onClick={e => e.stopPropagation()}>
                 <button
                   onClick={() => handleToggle(u._id)}
